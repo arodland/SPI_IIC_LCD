@@ -243,6 +243,9 @@ void LiquidCrystal::pulseEnable(void) {
 }
 
 void LiquidCrystal::write4bits(uint8_t value) {
-  _SPISetBit(5-i, (value >> i) & 0x01);
+  for (int i = 0; i < 4; i++) {
+    _SPISetBit(5-i, (value >> i) & 0x01);
+  }
+
   pulseEnable();
 }
