@@ -42,6 +42,8 @@ LiquidCrystal::LiquidCrystal(uint8_t data, uint8_t clock, uint8_t latch ) {
   digitalWrite(_SPIlatch, HIGH);
 
   SPI.begin();
+  SPI.setClockDivider(SPI_CLOCK_DIV64);
+  SPI.setDataMode(SPI_MODE0);
   _SPIbuff = 0;
 
   // we can't begin() yet :(
