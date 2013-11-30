@@ -24,7 +24,7 @@
 // can't assume that its in that state when a sketch starts (and the
 // LiquidCrystal constructor is called).
 
-#define _SPISetBit(b, v) _SPIdata = ((_SPIdata & ~(1<<(b))) | (v<<(b)))
+#define _SPISetBit(b, v) _SPIbuff = ((_SPIbuff & ~(1<<(b))) | (v<<(b)))
 
 LiquidCrystal::LiquidCrystal(uint8_t data, uint8_t clock, uint8_t latch ) {
   _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
