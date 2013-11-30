@@ -18,6 +18,7 @@
 // include the library code:
 #include <Wire.h>
 #include <LiquidCrystal.h>
+#include <SPI.h>
 
 // Connect via SPI. Data pin is #3, Clock is #2 and Latch is #4
 LiquidCrystal lcd(3, 2, 4);
