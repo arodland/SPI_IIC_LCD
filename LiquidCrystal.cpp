@@ -4,7 +4,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include "Arduino.h"
-#include <SPI.h>
+#include "SPI.h"
 
 // When the display powers up, it is configured as follows:
 //
