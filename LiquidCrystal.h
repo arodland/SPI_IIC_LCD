@@ -75,7 +75,6 @@ public:
 private:
   void send(uint8_t, uint8_t);
   void write4bits(uint8_t);
-  void write8bits(uint8_t);
   void pulseEnable();
   void _digitalWrite(uint8_t, uint8_t);
 
