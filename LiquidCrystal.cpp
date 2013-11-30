@@ -24,64 +24,14 @@
 // can't assume that its in that state when a sketch starts (and the
 // LiquidCrystal constructor is called).
 
-LiquidCrystal::LiquidCrystal(uint8_t rs, uint8_t rw, uint8_t enable,
-			     uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3,
-			     uint8_t d4, uint8_t d5, uint8_t d6, uint8_t d7)
-{
-  init(0, rs, rw, enable, d0, d1, d2, d3, d4, d5, d6, d7);
-}
-
-LiquidCrystal::LiquidCrystal(uint8_t rs, uint8_t enable,
-			     uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3,
-			     uint8_t d4, uint8_t d5, uint8_t d6, uint8_t d7)
-{
-  init(0, rs, 255, enable, d0, d1, d2, d3, d4, d5, d6, d7);
-}
-
-LiquidCrystal::LiquidCrystal(uint8_t rs, uint8_t rw, uint8_t enable,
-			     uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3)
-{
-  init(1, rs, rw, enable, d0, d1, d2, d3, 0, 0, 0, 0);
-}
-
-LiquidCrystal::LiquidCrystal(uint8_t rs,  uint8_t enable,
-			     uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3)
-{
-  init(1, rs, 255, enable, d0, d1, d2, d3, 0, 0, 0, 0);
-}
-
-LiquidCrystal::LiquidCrystal(uint8_t i2caddr) {
-  _i2cAddr = i2caddr;
-
-  _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
-  
-  // the I/O expander pinout
-  _rs_pin = 7;
-  _rw_pin = 255;
-  _enable_pin = 6;
-  _data_pins[0] = 5;  // really d4
-  _data_pins[1] = 4;  // really d5
-  _data_pins[2] = 3;  // really d6
-  _data_pins[3] = 2;  // really d7
-  
-  // we can't begin() yet :(
-}
-
 
 LiquidCrystal::LiquidCrystal(uint8_t data, uint8_t clock, uint8_t latch ) {
-  _i2cAddr = 255;
-
   _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
   
   // the SPI expander pinout
   _rs_pin = 7;
-  _rw_pin = 255;
   _enable_pin = 6;
-  _data_pins[0] = 5;  // really d4
-  _data_pins[1] = 4;  // really d5
-  _data_pins[2] = 3;  // really d6
-  _data_pins[3] = 2;  // really d7
-  
+
   _SPIdata = data;
   _SPIclock = clock;
   _SPIlatch = latch;
@@ -95,58 +45,8 @@ LiquidCrystal::LiquidCrystal(uint8_t data, uint8_t clock, uint8_t latch ) {
   begin(16,1);
 }
 
-
-void LiquidCrystal::init(uint8_t fourbitmode, uint8_t rs, uint8_t rw, uint8_t enable,
-			 uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3,
-			 uint8_t d4, uint8_t d5, uint8_t d6, uint8_t d7)
-{
-  _rs_pin = rs;
-  _rw_pin = rw;
-  _enable_pin = enable;
-  
-  _data_pins[0] = d0;
-  _data_pins[1] = d1;
-  _data_pins[2] = d2;
-  _data_pins[3] = d3; 
-  _data_pins[4] = d4;
-  _data_pins[5] = d5;
-  _data_pins[6] = d6;
-  _data_pins[7] = d7; 
-
-  _i2cAddr = 255;
-  _SPIclock = _SPIdata = _SPIlatch = 255;
-
-  pinMode(_rs_pin, OUTPUT);
-  // we can save 1 pin by not using RW. Indicate by passing 255 instead of pin#
-  if (_rw_pin != 255) { 
-    pinMode(_rw_pin, OUTPUT);
-  }
-  pinMode(_enable_pin, OUTPUT);
-  
-  if (fourbitmode)
-    _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
-  else 
-    _displayfunction = LCD_8BITMODE | LCD_1LINE | LCD_5x8DOTS;
-  
-  begin(16, 1);  
-}
-
 void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
-  // check if i2c
-  if (_i2cAddr != 255) {
-    _i2c.begin(_i2cAddr);
-
-    _i2c.pinMode(1, OUTPUT); // backlight
-    _i2c.digitalWrite(1, HIGH); // backlight
-
-    
-    _i2c.pinMode(_rs_pin, OUTPUT);
-    _i2c.pinMode(_enable_pin, OUTPUT);
-  } else if (_SPIclock != 255) {
     _SPIbuff = 0x80; // backlight
-  }
-
-
 
   if (lines > 1) {
     _displayfunction |= LCD_2LINE;
@@ -166,9 +66,6 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
   // Now we pull both RS and R/W low to begin commands
   _digitalWrite(_rs_pin, LOW);
   _digitalWrite(_enable_pin, LOW);
-  if (_rw_pin != 255) { 
-    _digitalWrite(_rw_pin, LOW);
-  }
   
   //put the LCD into 4 bit or 8 bit mode
   if (! (_displayfunction & LCD_8BITMODE)) {
@@ -331,54 +228,25 @@ inline void LiquidCrystal::write(uint8_t value) {
 
 // little wrapper for i/o writes
 void  LiquidCrystal::_digitalWrite(uint8_t p, uint8_t d) {
-  if (_i2cAddr != 255) {
-    // an i2c command
-    _i2c.digitalWrite(p, d);
-  } else if (_SPIclock != 255) {
-    if (d == HIGH)
-      _SPIbuff |= (1 << p);
-    else 
-      _SPIbuff &= ~(1 << p);
+  if (d == HIGH)
+    _SPIbuff |= (1 << p);
+  else 
+    _SPIbuff &= ~(1 << p);
 
-    digitalWrite(_SPIlatch, LOW);
-    shiftOut(_SPIdata, _SPIclock, MSBFIRST,_SPIbuff);
-    digitalWrite(_SPIlatch, HIGH);
-  } else {
-    // straightup IO
-    digitalWrite(p, d);
-  }
+  digitalWrite(_SPIlatch, LOW);
+  shiftOut(_SPIdata, _SPIclock, MSBFIRST,_SPIbuff);
+  digitalWrite(_SPIlatch, HIGH);
 }
 
 // Allows to set the backlight, if the LCD backpack is used
 void LiquidCrystal::setBacklight(uint8_t status) {
-  // check if i2c or SPI
-  if ((_i2cAddr != 255) || (_SPIclock != 255)) {
     _digitalWrite(1, status); // backlight is on pin 7
-  }
-}
-
-// little wrapper for i/o directions
-void  LiquidCrystal::_pinMode(uint8_t p, uint8_t d) {
-  if (_i2cAddr != 255) {
-    // an i2c command
-    _i2c.pinMode(p, d);
-  } else if (_SPIclock != 255) {
-    // nothing!
-  } else {
-    // straightup IO
-    pinMode(p, d);
-  }
 }
 
 // write either command or data, with automatic 4/8-bit selection
 void LiquidCrystal::send(uint8_t value, uint8_t mode) {
   _digitalWrite(_rs_pin, mode);
 
-  // if there is a RW pin indicated, set it low to Write
-  if (_rw_pin != 255) { 
-    _digitalWrite(_rw_pin, LOW);
-  }
-  
   if (_displayfunction & LCD_8BITMODE) {
     write8bits(value); 
   } else {
@@ -398,7 +266,6 @@ void LiquidCrystal::pulseEnable(void) {
 
 void LiquidCrystal::write4bits(uint8_t value) {
   for (int i = 0; i < 4; i++) {
-    _pinMode(_data_pins[i], OUTPUT);
     _digitalWrite(_data_pins[i], (value >> i) & 0x01);
   }
 
@@ -407,7 +274,6 @@ void LiquidCrystal::write4bits(uint8_t value) {
 
 void LiquidCrystal::write8bits(uint8_t value) {
   for (int i = 0; i < 8; i++) {
-    _pinMode(_data_pins[i], OUTPUT);
     _digitalWrite(_data_pins[i], (value >> i) & 0x01);
   }
   
