@@ -67,40 +67,23 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
   _digitalWrite(_rs_pin, LOW);
   _digitalWrite(_enable_pin, LOW);
   
-  //put the LCD into 4 bit or 8 bit mode
-  if (! (_displayfunction & LCD_8BITMODE)) {
-    // this is according to the hitachi HD44780 datasheet
-    // figure 24, pg 46
+  // this is according to the hitachi HD44780 datasheet
+  // figure 24, pg 46
 
-    // we start in 8bit mode, try to set 4 bit mode
-    write4bits(0x03);
-    delayMicroseconds(4500); // wait min 4.1ms
+  // we start in 8bit mode, try to set 4 bit mode
+  write4bits(0x03);
+  delayMicroseconds(4500); // wait min 4.1ms
 
-    // second try
-    write4bits(0x03);
-    delayMicroseconds(4500); // wait min 4.1ms
-    
-    // third go!
-    write4bits(0x03); 
-    delayMicroseconds(150);
+  // second try
+  write4bits(0x03);
+  delayMicroseconds(4500); // wait min 4.1ms
+  
+  // third go!
+  write4bits(0x03); 
+  delayMicroseconds(150);
 
-    // finally, set to 8-bit interface
-    write4bits(0x02); 
-  } else {
-    // this is according to the hitachi HD44780 datasheet
-    // page 45 figure 23
-
-    // Send function set command sequence
-    command(LCD_FUNCTIONSET | _displayfunction);
-    delayMicroseconds(4500);  // wait more than 4.1ms
-
-    // second try
-    command(LCD_FUNCTIONSET | _displayfunction);
-    delayMicroseconds(150);
-
-    // third go
-    command(LCD_FUNCTIONSET | _displayfunction);
-  }
+  // finally, set to 8-bit interface
+  write4bits(0x02); 
 
   // finally, set # lines, font size, etc.
   command(LCD_FUNCTIONSET | _displayfunction);  
@@ -247,12 +230,8 @@ void LiquidCrystal::setBacklight(uint8_t status) {
 void LiquidCrystal::send(uint8_t value, uint8_t mode) {
   _digitalWrite(_rs_pin, mode);
 
-  if (_displayfunction & LCD_8BITMODE) {
-    write8bits(value); 
-  } else {
-    write4bits(value>>4);
-    write4bits(value);
-  }
+  write4bits(value>>4);
+  write4bits(value);
 }
 
 void LiquidCrystal::pulseEnable(void) {
@@ -269,13 +248,5 @@ void LiquidCrystal::write4bits(uint8_t value) {
     _digitalWrite(_data_pins[i], (value >> i) & 0x01);
   }
 
-  pulseEnable();
-}
-
-void LiquidCrystal::write8bits(uint8_t value) {
-  for (int i = 0; i < 8; i++) {
-    _digitalWrite(_data_pins[i], (value >> i) & 0x01);
-  }
-  
   pulseEnable();
 }
