@@ -39,6 +39,8 @@ LiquidCrystal::LiquidCrystal(uint8_t data, uint8_t clock, uint8_t latch ) {
   _SPIlatch = latch;
 
   pinMode(_SPIlatch, OUTPUT);
+  digitalWrite(_SPIlatch, HIGH);
+
   SPI.begin();
   _SPIbuff = 0;
 
