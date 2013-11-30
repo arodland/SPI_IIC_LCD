@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include "Print.h"
 #include "MCP23008.h"
+#include <SPI.h>
 
 // commands
 #define LCD_CLEARDISPLAY 0x01
