@@ -224,7 +224,8 @@ void LiquidCrystal::_SPIOut() {
 
 // Allows to set the backlight, if the LCD backpack is used
 void LiquidCrystal::setBacklight(uint8_t status) {
-    _SPISetBit(7, status); 
+    _SPISetBit(1, status); 
+    _SPIOut();
 }
 
 // write either command or data, with automatic 4/8-bit selection
