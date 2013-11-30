@@ -24,6 +24,7 @@
 // can't assume that its in that state when a sketch starts (and the
 // LiquidCrystal constructor is called).
 
+#define _SPISetBit(b, v) _SPIdata = ((_SPIdata & ~(1<<(b))) | (v<<(b)))
 
 LiquidCrystal::LiquidCrystal(uint8_t data, uint8_t clock, uint8_t latch ) {
   _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
@@ -64,9 +65,10 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
   // before sending commands. Arduino can turn on way befer 4.5V so we'll wait 50
   delayMicroseconds(50000); 
   // Now we pull both RS and R/W low to begin commands
-  _digitalWrite(_rs_pin, LOW);
-  _digitalWrite(_enable_pin, LOW);
-  
+  _SPISetBit(_rs_pin, LOW);
+  _SPISetBit(_enable_pin, LOW);
+  _SPIOut();
+
   // this is according to the hitachi HD44780 datasheet
   // figure 24, pg 46
 
@@ -210,12 +212,7 @@ inline  size_t LiquidCrystal::write(uint8_t value) {
 /************ low level data pushing commands **********/
 
 // little wrapper for i/o writes
-void  LiquidCrystal::_digitalWrite(uint8_t p, uint8_t d) {
-  if (d == HIGH)
-    _SPIbuff |= (1 << p);
-  else 
-    _SPIbuff &= ~(1 << p);
-
+void LiquidCrystal::_SPIOut() {
   digitalWrite(_SPIlatch, LOW);
   shiftOut(_SPIdata, _SPIclock, MSBFIRST,_SPIbuff);
   digitalWrite(_SPIlatch, HIGH);
@@ -223,30 +220,29 @@ void  LiquidCrystal::_digitalWrite(uint8_t p, uint8_t d) {
 
 // Allows to set the backlight, if the LCD backpack is used
 void LiquidCrystal::setBacklight(uint8_t status) {
-    _digitalWrite(1, status); // backlight is on pin 7
+    _SPISetBit(1, status); 
 }
 
 // write either command or data, with automatic 4/8-bit selection
 void LiquidCrystal::send(uint8_t value, uint8_t mode) {
-  _digitalWrite(_rs_pin, mode);
+  _SPISetBit(_rs_pin, mode);
 
   write4bits(value>>4);
   write4bits(value);
 }
 
 void LiquidCrystal::pulseEnable(void) {
-  _digitalWrite(_enable_pin, LOW);
-  delayMicroseconds(1);    
-  _digitalWrite(_enable_pin, HIGH);
+  _SPIOut();
+  delayMicroseconds(1); // make sure the bits are on the shift register
+  _SPISetBit(_enable_pin, HIGH);
+  _SPIOut();
   delayMicroseconds(1);    // enable pulse must be >450ns
-  _digitalWrite(_enable_pin, LOW);
+  _SPISetBit(_enable_pin, LOW);
+  _SPIOut();
   delayMicroseconds(100);   // commands need > 37us to settle
 }
 
 void LiquidCrystal::write4bits(uint8_t value) {
-  for (int i = 0; i < 4; i++) {
-    _digitalWrite(5 - i, (value >> i) & 0x01);
-  }
-
+  _SPISetBit(5-i, (value >> i) & 0x01);
   pulseEnable();
 }
