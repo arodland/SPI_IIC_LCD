@@ -245,7 +245,7 @@ void LiquidCrystal::pulseEnable(void) {
 
 void LiquidCrystal::write4bits(uint8_t value) {
   for (int i = 0; i < 4; i++) {
-    _digitalWrite(_data_pins[i], (value >> i) & 0x01);
+    _digitalWrite(5 - i, (value >> i) & 0x01);
   }
 
   pulseEnable();
