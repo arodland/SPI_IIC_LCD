@@ -4,6 +4,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include "Arduino.h"
+#include "SPI.h"
 
 // When the display powers up, it is configured as follows:
 //
@@ -37,9 +38,8 @@ LiquidCrystal::LiquidCrystal(uint8_t data, uint8_t clock, uint8_t latch ) {
   _SPIclock = clock;
   _SPIlatch = latch;
 
-  pinMode(_SPIdata, OUTPUT);
-  pinMode(_SPIclock, OUTPUT);
   pinMode(_SPIlatch, OUTPUT);
+  SPI.begin();
   _SPIbuff = 0;
 
   // we can't begin() yet :(
@@ -214,7 +214,7 @@ inline  size_t LiquidCrystal::write(uint8_t value) {
 // little wrapper for i/o writes
 void LiquidCrystal::_SPIOut() {
   digitalWrite(_SPIlatch, LOW);
-  shiftOut(_SPIdata, _SPIclock, MSBFIRST,_SPIbuff);
+  SPI.transfer(_SPIbuff);
   digitalWrite(_SPIlatch, HIGH);
 }
 
